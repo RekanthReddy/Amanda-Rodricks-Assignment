@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Parking Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f0f0f0;
+      text-align: center;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #timer {
+      font-size: 20px;
+      margin-top: 10px;
+    }
+    canvas {
+      border: 1px solid #000;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🚗 Smart Parking Tracker</h1>
+
+  <button onclick="saveParkingLocation()">📍 Save My Parking Spot</button>
+  <button onclick="startParkingTimer()">⏳ Start Parking Timer</button>
+
+  <div id="location"></div>
+  <div id="timer">⏳ Timer: Not started</div>
+
+  <h3>✏️ Sketch Your Parking Spot</h3>
+  <canvas id="canvas" width="300" height="200"></canvas>
+
+  <script>
+    // ===== Geolocation API =====
+    function saveParkingLocation() {
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(position => {
+          const { latitude, longitude } = position.coords;
+          document.getElementById("location").innerText = 
+            `🌍 Location Saved: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+          localStorage.setItem("parkingLat", latitude);
+          localStorage.setItem("parkingLong", longitude);
+        }, () => alert("❌ Location access denied."));
+      } else {
+        alert("❌ Geolocation not supported.");
+      }
+    }
+
+    // ===== Background Task (Timer Simulation) =====
+    let timerInterval;
+    function startParkingTimer() {
+      let seconds = 0;
+      clearInterval(timerInterval);
+
+      if ('scheduler' in window) {
+        console.log("Background Tasks API available.");
+      } else {
+        console.log("Background Tasks API not supported - using fallback.");
+      }
+
+      timerInterval = setInterval(() => {
+        seconds++;
+        document.getElementById("timer").innerText = “⏳ Timer: " + formatTime(seconds);
+        if (seconds === 10) alert("⏰ Reminder: You've parked for 10 seconds (demo limit).");
+      }, 1000);
+    }
+
+    function formatTime(sec) {
+      const mins = Math.floor(sec / 60);
+      const secs = sec % 60;
+      return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    // ===== Canvas Drawing =====
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    let drawing = false;
+
+    canvas.addEventListener("mousedown", () => drawing = true);
+    canvas.addEventListener("mouseup", () => drawing = false);
+    canvas.addEventListener("mousemove", draw);
+
+    function draw(e) {
+      if (!drawing) return;
+      const rect = canvas.getBoundingClientRect();
+      ctx.fillStyle = "black";
+      ctx.beginPath();
+      ctx.arc(e.clientX - rect.left, e.clientY - rect.top, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  </script>
+</body>
+</html>
